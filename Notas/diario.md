@@ -1,6 +1,19 @@
 # 📅 Diario de Desarrollo
 
-Registro diario del progreso del proyecto **Robot Gato Sushi** 🐱🍣 — ROSbot 2R + Node-RED + Telegram.
+Registro diario del progreso del proyecto **Robot Gato Sushi** 🐱🍣 — ROSbot 2 PRO + Node-RED + Telegram.
+
+---
+
+## 2026-10-22
+
+### ✅ Tareas realizadas
+- **Cambio de plataforma:** el robot del proyecto pasa de ROSbot 2R a **ROSbot 2 PRO**.
+- Actualizadas las fichas y tareas del equipo para reflejar el nuevo modelo.
+- Se corrige la suposición de ROS 2 Humble: la imagen Husarion OS para la UP Board del ROSbot 2 PRO usa Foxy; confirmar la versión instalada antes de elegir la distribución del PC y de Gazebo.
+
+### 📝 Observaciones
+- La guía actual de Husarion para ROSbot 2R / 2 PRO se mantiene como referencia de puesta en marcha.
+- Confirmar la configuración concreta de sensores y firmware de la unidad antes de cerrar la instalación y el diseño de la bandeja.
 
 ---
 

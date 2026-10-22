@@ -4,14 +4,14 @@
 
 Proyecto de robótica inspirado en los **restaurantes de sushi con gatos robot** 🐱🍣. El objetivo es desarrollar un robot camarero autónomo capaz de llevar platos desde la cocina hasta las mesas de los clientes.
 
-- **Robot:** ROSbot 2R (Husarion) — plataforma con LiDAR, IMU y cámaras para navegación autónoma.
+- **Robot:** ROSbot 2 PRO (Husarion) — plataforma para navegación autónoma; confirmar la imagen de sistema, la distribución ROS 2 y los sensores de la unidad disponible.
 - **Automatización:** Node-RED como orquestador central para gestionar la lógica de pedidos, rutas y estado del robot.
 - **Pedidos:** Los clientes (cada integrante con su móvil) hacen pedidos a través de un **bot de Telegram**, que se comunica con Node-RED.
 
 ### Flujo general
 
 ```
-Cliente (Telegram) → Bot Telegram → Node-RED → ROSbot 2R (ROS2) → Entrega en mesa
+Cliente (Telegram) → Bot Telegram → Node-RED → ROSbot 2 PRO (ROS2) → Entrega en mesa
 ```
 
 ## 👥 Integrantes
@@ -25,7 +25,7 @@ Cliente (Telegram) → Bot Telegram → Node-RED → ROSbot 2R (ROS2) → Entreg
 
 ## 🎯 Objetivos
 
-1. Configurar y poner en marcha el **ROSbot 2R** con ROS2.
+1. Identificar la imagen de sistema y la distribución ROS 2 del **ROSbot 2 PRO**, y acordar una distribución compatible para el PC y la simulación.
 2. Implementar **navegación autónoma** (SLAM, localización, planificación de rutas) para que el robot se desplace entre cocina y mesas.
 3. Crear un **bot de Telegram** para que los clientes hagan pedidos desde su móvil.
 4. Desarrollar flujos en **Node-RED** que conecten los pedidos de Telegram con las órdenes de movimiento del robot.
@@ -45,8 +45,8 @@ Cliente (Telegram) → Bot Telegram → Node-RED → ROSbot 2R (ROS2) → Entreg
 
 | Componente | Tecnología |
 |------------|-----------|
-| **Robot** | ROSbot 2R (Husarion) |
-| **Framework robótico** | ROS2 Humble |
+| **Robot** | ROSbot 2 PRO (Husarion) |
+| **Framework robótico** | ROS 2 (distribución por confirmar tras inspeccionar la imagen del ROSbot 2 PRO) |
 | **Navegación** | Nav2 (Navigation Stack 2) |
 | **Automatización / Orquestador** | Node-RED |
 | **Interfaz de pedidos** | Bot de Telegram |
@@ -70,8 +70,8 @@ PR2026/
 
 ## 🔗 Recursos Útiles
 
-- [ROSbot 2R — Quick Start (Husarion)](https://husarion.com/tutorials/howtostart/rosbot2r-quick-start/)
-- [Documentación ROS2 Humble](https://docs.ros.org/en/humble/)
+- [ROSbot 2R / 2 PRO — Quick Start (Husarion)](https://husarion.com/tutorials/howtostart/rosbot2r-quick-start/)
+- [Documentación ROS 2](https://docs.ros.org/)
 - [Nav2 — Navigation Stack 2](https://docs.nav2.org/)
 - [Node-RED](https://nodered.org/docs/)
 - [Node-RED Telegram (node-red-contrib-telegrambot)](https://flows.nodered.org/node/node-red-contrib-telegrambot)

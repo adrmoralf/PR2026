@@ -32,7 +32,7 @@
 
 - [ ] **Conectar Node-RED con ROS2**
   - [ ] Investigar opciones: `rosbridge_websocket` + nodo WebSocket en Node-RED, o MQTT bridge
-  - [ ] Instalar `rosbridge_suite` en ROS2 (`ros-humble-rosbridge-suite`)
+  - [ ] Instalar `rosbridge_suite` para la distribución ROS 2 acordada con Adri
   - [ ] Crear un flujo que envíe goals de navegación al robot cuando llegue un pedido
   - [ ] Probar el envío de un waypoint (coordenadas de mesa) desde Node-RED
 

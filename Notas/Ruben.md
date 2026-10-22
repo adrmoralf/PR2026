@@ -2,11 +2,11 @@
 
 ## 🎯 Tarea principal
 
-**Diseño y fabricación de la estructura 3D para el ROSbot 2R (bandeja porta-platos estilo gato sushi)**
+**Diseño y fabricación de la estructura 3D para el ROSbot 2 PRO (bandeja porta-platos estilo gato sushi)**
 
 ## 📋 Subtareas
 
-- [ ] **Tomar medidas del ROSbot 2R**
+- [ ] **Tomar medidas del ROSbot 2 PRO**
   - [ ] Medir las dimensiones del chasis (largo, ancho, alto)
   - [ ] Identificar puntos de anclaje / tornillos disponibles en la parte superior
   - [ ] Medir el peso máximo que soporta el robot (consultar specs: ~4 kg de carga útil)
@@ -33,7 +33,7 @@
 - [ ] **Impresión 3D y montaje**
   - [ ] Imprimir las piezas (material recomendado: PLA o PETG)
   - [ ] Lijar y ajustar las piezas si es necesario
-  - [ ] Montar la estructura sobre el ROSbot 2R
+  - [ ] Montar la estructura sobre el ROSbot 2 PRO
   - [ ] Probar estabilidad con peso real (platos con comida de prueba)
 
 - [ ] **Iterar según pruebas**

@@ -2,13 +2,13 @@
 
 ## 🎯 Tarea principal
 
-**Simulación del ROSbot 2R en Gazebo con ROS2 Humble**
+**Simulación del ROSbot 2 PRO en Gazebo con la distribución ROS 2 acordada para el proyecto**
 
 ## 📋 Subtareas
 
 - [ ] **Instalar el entorno de simulación**
-  - [ ] Instalar Gazebo (Ignition Fortress o Gazebo Classic según compatibilidad con Humble)
-  - [ ] Instalar los paquetes de simulación del ROSbot 2R de Husarion
+  - [ ] Instalar Gazebo compatible con la distribución ROS 2 acordada
+  - [ ] Instalar los paquetes de simulación del ROSbot 2 PRO de Husarion
   - [ ] Verificar que el modelo URDF/SDF del robot carga correctamente en Gazebo
 
 - [ ] **Crear el mundo del restaurante**
