@@ -14,6 +14,12 @@ Registro diario del progreso del proyecto **Robot Gato Sushi** 🐱🍣 — ROSb
 - Documentada la arquitectura del robot camarero: Telegram → Node-RED → rosbridge/WebSocket → Nav2 `NavigateToPose` → ROSbot → confirmación de llegada/entrega.
 - Definido Node-RED como contenedor separado y con datos persistentes; la navegación sigue en el stack oficial `rosbot-autonomy` para ROSbot 2R/2 PRO.
 - Añadidas etapas de implementación: mapa, catálogo mesa→pose, prueba supervisada, bot con lista de usuarios permitidos, cola persistente e idempotencia.
+- **Sistema de recepción y comanda (Manu):**
+  - Integración de base de datos **SQLite** en Node-RED (`bar.db`) con tabla `pedidos` (`id`, `mesa`, `comanda`, `estado`).
+  - Evolución de la interfaz de usuario en Telegram: tras probar lectura con regex y botones inline (descartados por caché y dificultad para gestionar el carrito), se implementó la arquitectura definitiva con **Telegram Mini Apps (Web Apps)** en HTML/CSS/JS.
+  - Implementados los endpoints en Node-RED: Front-end (`GET /carta_app`) con catálogo interactivo, cálculo de totales y carrito; Back-end (`POST /recibir_pedido`) que inserta en SQLite y confirma el pedido en el chat de Telegram.
+  - Despliegue de túnel seguro HTTPS con **Ngrok** (`https://unglazed-record-pedigree.ngrok-free.dev`) para cumplir los requerimientos de Telegram Web Apps.
+  - Implementación de asignación autónoma de mesas vía **códigos QR** con Deep Links (`/start NUMERO_MESA`) inyectados dinámicamente en la URL de la Mini App (`?mesa=X`).
 
 ### 📝 Observaciones
 - La guía actual de Husarion para ROSbot 2R / 2 PRO se mantiene como referencia de puesta en marcha.
@@ -21,6 +27,8 @@ Registro diario del progreso del proyecto **Robot Gato Sushi** 🐱🍣 — ROSb
 - El protocolo rosbridge para ROS 2 describe publicación/suscripción, servicios y acciones; hay que confirmar que la versión de servidor instalada en Humble soporta las operaciones de acción que necesitará Nav2.
 - Confirmar la configuración concreta de sensores y firmware de la unidad antes de cerrar el diseño de la bandeja.
 - La conexión al hotspot del móvil tuvo 0 % de pérdida en 20 pings, pero RTT medio 112,7 ms y máximo 331,1 ms; para movimiento autónomo en salón, validar red estable y teleoperación segura.
+- Resueltos errores durante la integración del bot y Ngrok: conflictos de caché en nodos Telegram y códigos de error `ERR_NGROK_105` y `ERR_NGROK_3200`.
+- Próximos pasos en orquestación: creación de Dashboard de cocina/barra para marcar comandas listas y enlace con despacho autónomo del robot vía Nav2/rosbridge.
 
 ---
 
@@ -72,4 +80,3 @@ Registro diario del progreso del proyecto **Robot Gato Sushi** 🐱🍣 — ROSb
 ### 🔜 Próximos pasos
 - ...
 -->
-
