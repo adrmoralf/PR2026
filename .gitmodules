@@ -1,0 +1,4 @@
+[submodule "rosbot-autonomy"]
+	path = rosbot-autonomy
+	url = https://github.com/husarion/rosbot-autonomy.git
+	branch = ros2router

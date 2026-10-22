@@ -6,11 +6,11 @@
 
 ## 📋 Subtareas
 
-- [ ] **Identificar el entorno del robot antes de instalar o actualizar nada**
-  - [ ] Comprobar el modelo de SBC/CPU y la imagen de sistema instalada
-  - [ ] Anotar la versión de Ubuntu y de ROS 2 (`printenv ROS_DISTRO` o consultar los contenedores)
-  - [ ] El ROSbot 2 PRO suele usar una UP Board x86-64; la imagen Husarion OS para UP Board está basada en ROS 2 Foxy. Confirmar la imagen concreta de esta unidad
-  - [ ] Decidir la distribución común para robot, PC y simulación antes de instalar dependencias
+- [x] **Identificar el entorno del robot antes de instalar o actualizar nada**
+  - [x] Comprobar el modelo de SBC/CPU y sistema: UP Board x86-64, Ubuntu 20.04.6 LTS (Focal)
+  - [x] Distinguir ROS 2 del host (Foxy) de los contenedores activos (`rosbot`, `microros`, `rplidar`, Humble)
+  - [x] Para los comandos ROS y la navegación actuales, usar el entorno Humble del contenedor; en la shell del host falta `/opt/ros/humble/local_setup.bash`
+  - [ ] Acordar distribución de desarrollo para PC/simulación sin cambiar ni actualizar el robot a ciegas
 - [ ] **Preparar el entorno de desarrollo en el PC**
   - [ ] Elegir una versión de Ubuntu compatible con la distribución ROS 2 elegida
   - [ ] Instalar esa distribución de ROS 2 en el PC o usar contenedores si el sistema no es compatible
@@ -19,7 +19,7 @@
 - [ ] **Puesta en marcha del ROSbot 2 PRO**
   - [ ] Seguir el [Quick Start de Husarion para ROSbot 2R / 2 PRO](https://husarion.com/tutorials/howtostart/rosbot2r-quick-start/)
   - [ ] Flashear/actualizar el firmware del ROSbot 2 PRO si es necesario
-  - [ ] Verificar que el robot arranca correctamente con la distribución ROS 2 identificada
+  - [x] Verificar que los contenedores arrancan y publican los tópicos de sensores y movimiento comprobados
 
 - [ ] **Configurar la red entre PC y robot**
   - [ ] Conectar PC y ROSbot a la misma red Wi-Fi
@@ -62,6 +62,8 @@
 - Control manual: `/cmd_vel` es `geometry_msgs/msg/Twist` y `rosbot_base_controller` está suscrito. El ejecutable `teleop_twist_keyboard` está disponible dentro del contenedor `rosbot`.
 - Prueba inicial de teleoperación: el robot respondió y se movió brevemente con `i`; en esa prueba se indicó pulsar la tecla solo un instante y después parar con `k`.
 - Ping laptop → ROSbot (`172.20.10.8`): 20/20 respuestas, 0 % de pérdida; RTT mínimo 12 ms, medio 112,7 ms, máximo 331,1 ms, desviación 95,0 ms. Hay jitter alto pese a que no se perdieron paquetes.
+- Proyecto de robot camarero: Node-RED recibe pedidos Telegram, valida la mesa y solicita a Nav2 navegar a la pose guardada de esa mesa. Mantener `/cmd_vel` para teleoperación y confirmar entrega separadamente de la llegada.
+- Referencia de despliegue de navegación: submódulo oficial [`rosbot-autonomy`](../rosbot-autonomy) en rama `ros2router`; requiere revisar configuración antes de levantarlo en esta unidad.
 
 _(Apunta aquí lo que vayas descubriendo, problemas, soluciones, etc.)_
 
