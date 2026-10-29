@@ -30,6 +30,35 @@ Registro diario del progreso del proyecto **Robot Gato Sushi** 🐱🍣 — ROSb
 - Resueltos errores durante la integración del bot y Ngrok: conflictos de caché en nodos Telegram y códigos de error `ERR_NGROK_105` y `ERR_NGROK_3200`.
 - Próximos pasos en orquestación: creación de Dashboard de cocina/barra para marcar comandas listas y enlace con despacho autónomo del robot vía Nav2/rosbridge.
 
+## 2026-10-29
+
+### ✅ Tareas realizadas
+- Revisado el siguiente bloque de tareas de Adri: preparar el PC para trabajar con el ROSbot 2 PRO.
+- Inventario del PC: Ubuntu 26.04 LTS x86-64, Docker 29.8.2, Docker Compose v5.6.0 y `colcon`; no se encontraron `ros2` ni `just` instalados en el host.
+- Revisado `rosbot-autonomy`: su Compose para PC usa RViz2 Iron y ROS 2 Router; los servicios del robot usan imágenes Humble.
+- Documentada la ruta de desarrollo inicial con contenedores para convivir con Ubuntu 26.04 y mantener alineación con el ROSbot Humble.
+
+### 🚧 Pendiente antes de desplegar el stack físico
+- CPU confirmada: Intel Atom x5-Z8350; `mppi` no es compatible. Cambiada la copia local `rosbot-autonomy/.env` a DWB.
+- Identificado el puerto de la base: `/dev/ttySERIAL` apunta a `/dev/ttyS4`, y el contenedor actual `microros` utiliza `/dev/ttySERIAL`. Añadido `SERIAL_PORT=/dev/ttySERIAL` al `.env` local.
+- Validado en laptop y ROSbot sin levantar servicios con `docker compose config --quiet`; el Compose resuelve `nav2_dwb_params.yaml` y mapea `/dev/ttySERIAL` al servicio rosbot.
+- Identificado el LiDAR: el CP2102 `/dev/ttyUSB0` está enlazado por udev como `/dev/ttyRPLIDAR` y asignado al contenedor `rplidar`; no es el puerto de la base.
+- El healthcheck de `rplidar` falla porque no encuentra su archivo de salud, aunque el log muestra SLLidar `OK` y 10 Hz. Los tres contenedores anteriores siguen activos; evitar abrir el serial de base con dos agentes o lanzar dos nodos LiDAR al cambiar de stack.
+- Copiado el submódulo al ROSbot en `/home/husarion/rosbot-autonomy`, fijado al commit `b4208db70cf88a064ea886256f03e40959c57181`; ajustados allí `CONTROLLER=dwb` y `SERIAL_PORT=/dev/ttySERIAL`.
+- Descarga oficial intentada con `docker compose pull`: el primer intento dio timeout DNS; en el segundo, el hotspot descargó muy lento (~40/137 MB de la imagen RPLIDAR tras ~4 min), así que se canceló. Después, los tres contenedores antiguos seguían activos y el espacio libre continuaba en 6,8 GB.
+- Después de colocar una antena en el ROSbot, se reanudó y completó la descarga de imágenes (`rosbot`, `navigation2`, `rplidar`, `ros2router`). `docker compose config --quiet` pasó en el robot.
+- Se hizo un cambio controlado al Compose oficial con `CONTROLLER=dwb`, deteniendo primero el stack anterior para no duplicar acceso al UART y al LiDAR. El servicio oficial del LiDAR quedó saludable; el controlador rosbot no recibió feedback de IMU por `/dev/ttySERIAL`, sus spawners no encontraron `rosbot2r/controller_manager` y el healthcheck terminó en `unhealthy`. Navigation2 no llegó a arrancar.
+- No se envió ningún comando de movimiento ni se actualizó firmware. Se hizo `docker compose down` y se reactivaron los contenedores previos (`rosbot`, `microros`, `rplidar`); `/scan`, `/odometry/filtered` e `/imu_broadcaster/imu` volvieron a estar presentes. El LiDAR estaba aún en `health: starting` al verificar, tras 14 segundos.
+- La guía oficial dice que el firmware micro-ROS STM32F4 se debe actualizar antes de iniciar autonomía. Se inspeccionó `justfile`: `flash-firmware` detiene todos los contenedores Docker y usa un contenedor privilegiado para programar el microcontrolador. No se ejecutó; es el paso pendiente, tras confirmar el procedimiento/versión adecuada para esta unidad. [Guía oficial](https://github.com/husarion/rosbot-autonomy/tree/ros2router)
+- Con autorización de Adri se ejecutó `just flash-firmware`: detectó STM32F4 (Device ID `0x0413`) y terminó con `Firmware flashing completed successfully`; `firmware-0.11.0.bin` llegó al 100 % escrito/verificado por `/dev/ttyS4`.
+- Se arrancó de nuevo el Compose oficial DWB. Los servicios `rosbot`, `rplidar` y `navigation` quedaron `healthy`; `ros2router` está activo. Los logs confirman IMU, controlador base y broadcasters activados, y lifecycle manager de Nav2 con sus nodos activos.
+- La lista de tópicos ROS 2 incluye `/rosbot2r/scan`, `/rosbot2r/odometry/filtered`, `/rosbot2r/imu_broadcaster/imu`, `/rosbot2r/cmd_vel` y tópicos de Nav2/SLAM. Las consultas puntuales `topic info` y `action list` entre contenedores no se confirmaron de forma consistente; revisar descubrimiento DDS y `NavigateToPose` antes de enlazar Node-RED. No se publicó velocidad ni se envió un goal. Falta mapa/pose inicial y teleoperación supervisada antes de navegar.
+- Los contenedores antiguos quedaron detenidos por `flash-firmware`; mantenerlos apagados para evitar conflicto de UART/LiDAR con el stack oficial. Espacio libre: 3,1 GB (89 % usado).
+
+### Fuentes
+- [ROS 2 Lyrical Luth — plataformas y releases oficiales](https://github.com/ros2/ros2/releases)
+- [`rosbot-autonomy` — Compose y guía oficial](https://github.com/husarion/rosbot-autonomy/tree/ros2router)
+
 ---
 
 ## 2026-10-15 (tarde)
