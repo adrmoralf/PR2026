@@ -28,7 +28,7 @@ Node-RED sirve la Web App de la carta, persiste el pedido en SQLite y gestiona s
 
 ## 🎯 Objetivos
 
-1. Mantener la integración alineada con ROS 2 Humble, distribución observada en los contenedores activos del robot; no asumir que el ROS 2 Foxy del host es el entorno de navegación.
+1. Mantener la integración alineada con ROS 2 Humble, distribución observada en los contenedores activos del robot; desarrollar en contenedores ROS compatibles en la laptop cuando sea posible.
 2. Implementar **navegación autónoma** (SLAM, localización, planificación de rutas) para que el robot se desplace entre cocina y mesas.
 3. Crear un **bot de Telegram** con **Telegram Mini App** para que los clientes elijan sus platos interactivamente desde el móvil.
 4. Desarrollar flujos en **Node-RED** que conecten los pedidos de Telegram y base de datos con las órdenes de movimiento del robot.
@@ -49,7 +49,7 @@ Node-RED sirve la Web App de la carta, persiste el pedido en SQLite y gestiona s
 | Componente | Tecnología |
 |------------|-----------|
 | **Robot** | ROSbot 2 PRO (Husarion) |
-| **Framework robótico** | ROS 2 (Humble en contenedores Docker) |
+| **Framework robótico** | ROS 2 Humble en contenedores Docker del robot; ROS 2 Foxy en el host del robot |
 | **Navegación** | Nav2 (Navigation Stack 2) |
 | **Automatización / Orquestador** | Node-RED (puerto 1880) |
 | **Base de datos** | SQLite (`bar.db`) |
@@ -109,6 +109,19 @@ Node-RED sirve la Web App de la carta, persiste el pedido en SQLite y gestiona s
 
 Estado: Telegram Mini App con carrito visual, endpoints de comanda en Node-RED (`/carta_app`, `/nuevo-pedido`), base de datos SQLite (`bar.db`), túnel Ngrok HTTPS, asignación de mesas por Deep Link QR y Dashboard de cocina Event-Driven con flujo cíclico de estados (`Procesando` ➔ `Entregando` ➔ `Listo`) completados y operativos. Pendientes: Enlace del disparo de entrega desde Dashboard con rosbridge hacia Nav2 y pruebas físicas de despacho en el mapa.
 
+## 💻 Entorno de desarrollo de Adri
+
+- Laptop inspeccionada el 2026-10-29: Ubuntu 26.04 LTS x86-64, Docker 29.8.2, Docker Compose v5.6.0 y `colcon`; no se encontró ROS 2 nativo (`ros2`) ni `just`.
+- ROS 2 Lyrical Luth ya ofrece binarios Tier 1 para Ubuntu 26.04, pero el ROSbot utiliza Humble. Para evitar desalinear herramientas y mensajes del stack actual, empezar con el Compose oficial/subcontenedores y añadir un contenedor de desarrollo Humble si hace falta compilar paquetes propios.
+- El Compose PC oficial incluido en `rosbot-autonomy` usa RViz2 Iron y ROS 2 Router; es la ruta prevista por Husarion para la configuración `ros2router` del robot.
+- La copia local y la copia del ROSbot están ajustadas a `CONTROLLER=dwb` y `SERIAL_PORT=/dev/ttySERIAL`; `docker compose config --quiet` pasó en ambos equipos. El repositorio remoto del robot está fijado al commit `b4208db70cf88a064ea886256f03e40959c57181`. Las imágenes oficiales se descargaron correctamente.
+- Después de la descarga el ROSbot tiene 3,1 GB libres (89 % de uso en `/`). Considerar ese margen antes de desplegar servicios/mapas adicionales; las imágenes antiguas aún ocupan espacio.
+- Primer intento controlado de arranque del Compose oficial (2026-10-29): el LiDAR quedó `healthy`, pero el controlador no recibía feedback de IMU por `/dev/ttySERIAL`; el contenedor rosbot quedó `unhealthy` y Nav2 no arrancó. Se detuvo ese intento sin enviar movimiento.
+- Se siguió la guía oficial y se ejecutó `just flash-firmware`. La herramienta identificó un STM32F4 (Device ID `0x0413`) y completó escritura y verificación de `firmware-0.11.0.bin` al 100 % por `/dev/ttyS4`. La receta oficial detiene todos los contenedores y usa un contenedor privilegiado para programarlo. [Guía oficial](https://github.com/husarion/rosbot-autonomy/tree/ros2router)
+- Compose oficial en marcha tras el flasheo: `rosbot`, `rplidar` y `navigation` `healthy`; `ros2router` activo. Logs confirman hardware controllers de ruedas/IMU y nodos lifecycle de Nav2 activos. La lista de tópicos incluye `/rosbot2r/scan`, `/rosbot2r/odometry/filtered`, `/rosbot2r/imu_broadcaster/imu`, `/rosbot2r/cmd_vel` y tópicos Nav2/SLAM. Las consultas puntuales a `topic info` y `action list` desde varios contenedores no fueron consistentes; resolver descubrimiento DDS y verificar `NavigateToPose` antes de integrar Node-RED.
+- El stack anterior (`rosbot`, `microros`, `rplidar` sin prefijo Compose) quedó detenido por la receta de flasheo. No volver a iniciarlo a la vez que el oficial: compartirían el UART `/dev/ttySERIAL` y el puerto del LiDAR.
+- No se envió comando de velocidad ni objetivo Nav2. Antes de navegación autónoma hay que crear/cargar el mapa, establecer pose inicial y hacer una prueba física supervisada. Espacio libre: 3,1 GB (89 % usado).
+
 ## 📂 Estructura del Repositorio
 
 ```
@@ -128,6 +141,7 @@ PR2026/
 
 - [ROSbot 2R / 2 PRO — Quick Start (Husarion)](https://husarion.com/tutorials/howtostart/rosbot2r-quick-start/)
 - [Documentación ROS 2](https://docs.ros.org/)
+- [ROS 2 Lyrical Luth: soporta Ubuntu 26.04 (referencia oficial)](https://github.com/ros2/ros2/releases)
 - [Nav2 — Navigation Stack 2](https://docs.nav2.org/)
 - [Conceptos de acciones en ROS 2 y NavigateToPose — Nav2](https://docs.nav2.org/jazzy/getting_started/navigation_concepts/ros2.html)
 - [rosbridge_suite — protocolo ROS 2 (acciones, topics y servicios)](https://github.com/RobotWebTools/rosbridge_suite/blob/ros2/ROSBRIDGE_PROTOCOL.md)
