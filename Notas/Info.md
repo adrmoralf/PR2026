@@ -12,10 +12,10 @@ Proyecto de robótica inspirado en los **restaurantes de sushi con gatos robot**
 ### Flujo general
 
 ```
-Cliente (QR / Telegram Web App) → Node-RED (HTTP In / SQLite) → Dashboard Cocina ("Listo") → rosbridge/WebSocket → Nav2 → ROSbot → Mesa → confirmación Telegram
+Cliente (QR / Telegram Web App) → Node-RED (POST /nuevo-pedido / SQLite) → Dashboard Cocina Event-Driven (avanzar_estado) → rosbridge/WebSocket → Nav2 → ROSbot 2 PRO → Mesa → confirmación Telegram
 ```
 
-Node-RED sirve la Web App de la carta, persiste el pedido en SQLite y gestiona su ciclo de vida. Tras ser marcado como preparado en cocina, Nav2 planificará y ejecutará el desplazamiento del ROSbot 2 PRO a la pose de la mesa.
+Node-RED sirve la Web App de la carta, persiste el pedido en SQLite y gestiona su ciclo de vida. Tras ser marcado para entrega en cocina, Nav2 planificará y ejecutará el desplazamiento del ROSbot 2 PRO a la pose de la mesa.
 
 ## 👥 Integrantes
 
@@ -60,22 +60,22 @@ Node-RED sirve la Web App de la carta, persiste el pedido en SQLite y gestiona s
 
 ## 🍽️ Flujo funcional del robot camarero
 
-1. **Lectura de QR en mesa:** El cliente escanea el código QR de su mesa (`https://t.me/NOMBRE_BOT?start=NUMERO_MESA`), iniciando el bot de Telegram con el identificador de mesa.
+1. **Lectura de QR en mesa:** El cliente escanea el código QR de su mesa (`https://t.me/NOMBRE_BOT?start=NUMERO_MESA`), iniciando el bot de Telegram con el identificador de mesa extraído automáticamente.
 2. **Apertura de la Mini App:** Node-RED inyecta el número de mesa como parámetro (`?mesa=X`) en el enlace seguro de Ngrok que abre la Web App de la carta interactiva (`GET /carta_app`).
-3. **Selección y comanda:** El cliente selecciona platos (`+`/`-`), revisa el cálculo del total en el carrito flotante y pulsa "Enviar a cocina". La Web App envía el JSON vía `POST /recibir_pedido`.
-4. **Persistencia y confirmación:** Node-RED inserta el registro en SQLite (`bar.db`, tabla `pedidos`, estado `pendiente`) y notifica al cliente por Telegram confirmando la recepción.
-5. **Preparación en cocina:** El personal de cocina visualiza la comanda en el Dashboard de Node-RED y, una vez lista, pulsa "Pedido Listo".
-6. **Despacho autónomo:** Node-RED traduce la mesa a una pose `{x, y, yaw}` en `map` y envía un goal `NavigateToPose` a Nav2 vía rosbridge.
-7. **Llegada y entrega:** Nav2 desplaza el ROSbot 2 PRO hasta la mesa asignada. Se notifica la llegada y se confirma la recogida de los platos.
+3. **Selección y comanda:** El cliente selecciona platos (`+`/`-`), revisa el desglose y totales en el carrito visual interactivo y pulsa "Enviar a cocina". La Web App envía el JSON vía webhook `POST /nuevo-pedido`.
+4. **Persistencia y confirmación:** Node-RED responde un `200 OK` instantáneo al móvil para cerrar la Mini App de forma nativa y limpia, mientras persiste de manera asíncrona el registro en SQLite (`bar.db`, tabla `pedidos`, estado inicial `Procesando`).
+5. **Preparación y Dashboard en cocina (Event-Driven):** El personal de cocina visualiza las comandas en el Dashboard de Node-RED (actualizado al instante mediante arquitectura reactiva basada en eventos sin polling). Mediante la acción `avanzar_estado` (vía WebSocket/UI), las comandas progresan cíclicamente: **Procesando ➔ Entregando ➔ Listo** (individualmente o por selección múltiple en lote).
+6. **Despacho autónomo:** Al avanzar el pedido al estado de entrega, Node-RED traduce la mesa a una pose `{x, y, yaw}` en `map` y envía un goal `NavigateToPose` a Nav2 vía rosbridge.
+7. **Llegada y entrega:** Nav2 desplaza el ROSbot 2 PRO hasta la mesa asignada. Se notifica la llegada y se confirma la recogida de los platos, pasando el pedido a `Listo`.
 
 ### Componentes y responsabilidades
 
 | Componente | Responsabilidad | Despliegue previsto |
 |---|---|---|
-| Bot de Telegram / Web App | Interfaz interactiva de carta, carrito, QR de mesa y avisos | HTML/JS servido por Node-RED (`GET /carta_app`) y túnel Ngrok HTTPS |
+| Bot de Telegram / Web App | Interfaz interactiva de carta, carrito visual, QR de mesa y avisos | HTML/JS servido por Node-RED (`GET /carta_app`) y túnel Ngrok HTTPS |
 | Base de datos (SQLite) | Persistencia local de comandas y estados (`bar.db`, tabla `pedidos`) | Gestionado directamente con nodos SQLite en Node-RED |
 | Node-RED | Servidor web de la carta, API de recepción, Dashboard de cocina y orquestador | Servicio en laptop/PC; puerto `1880` |
-| Dashboard Cocina | Visualización de comandas pendientes y botón de despacho | Módulo Node-RED Dashboard |
+| Dashboard Cocina | Visualización reactiva event-driven de comandas y botones de estado | Módulo Node-RED Dashboard |
 | rosbridge_suite | Puente JSON/WebSocket hacia interfaces ROS 2 | En el grafo ROS 2 Humble del robot, WebSocket normalmente en `9090` |
 | Nav2 (`rosbot-autonomy`) | Localización, planificación, navegación a destinos y resultado | Stack de autonomía oficial del ROSbot 2 PRO |
 | ROSbot 2 PRO | Base móvil, LiDAR, odometría, IMU y ejecución física | Contenedores del robot |
@@ -107,7 +107,7 @@ Node-RED sirve la Web App de la carta, persiste el pedido en SQLite y gestiona s
 5. Añadir persistencia/idempotencia, cola de pedidos, recuperación tras reinicio y confirmación de entrega.
 6. Realizar pruebas supervisadas en el salón vacío, después con carga inerte y solo al final con servicio real.
 
-Estado: Telegram Mini App, endpoints de comanda en Node-RED (`/carta_app`, `/recibir_pedido`), base de datos SQLite (`bar.db`), túnel Ngrok HTTPS y asignación de mesas por Deep Link QR completados y operativos. Pendientes: Dashboard de cocina, integración rosbridge con Nav2 y pruebas en el mapa.
+Estado: Telegram Mini App con carrito visual, endpoints de comanda en Node-RED (`/carta_app`, `/nuevo-pedido`), base de datos SQLite (`bar.db`), túnel Ngrok HTTPS, asignación de mesas por Deep Link QR y Dashboard de cocina Event-Driven con flujo cíclico de estados (`Procesando` ➔ `Entregando` ➔ `Listo`) completados y operativos. Pendientes: Enlace del disparo de entrega desde Dashboard con rosbridge hacia Nav2 y pruebas físicas de despacho en el mapa.
 
 ## 📂 Estructura del Repositorio
 

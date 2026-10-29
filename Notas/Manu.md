@@ -21,23 +21,27 @@
   - [x] Instalar nodo compatible con Telegram **Bot API** (`node-red-contrib-telegrambot`)
   - [x] Configurar el nodo Telegram con el token del bot
   - [x] Probar envío/recepción de mensajes básicos
+  - [x] Blindaje del bot ante colapsos (`if (!chatId) return null;`) cuando llegan eventos sin identificador de chat
 
 - [x] **Diseñar el flujo de pedidos y Mini App (Web App)**
   - [x] Prototipar lectura de chat por regex básico (`/mesa\s*(\d+)/i`) y botones Inline Keyboards (`callback_query`)
   - [x] Evaluar y descartar Inline Keyboards por conflictos de caché en el nodo (`10-function.js setup`) y refresco continuo de mensajes
-  - [x] Desarrollar **Telegram Mini App (Web App)** servida desde Node-RED (`GET /carta_app`) con catálogo interactivo HTML/CSS/JS, botones `+`/`-`, cálculo de precios y carrito flotante
+  - [x] Desarrollar **Telegram Mini App (Web App)** servida desde Node-RED (`GET /carta_app`) con catálogo interactivo HTML/CSS/JS, botones `+`/`-`, cálculo de precios y carrito visual previo al envío
   - [x] Configurar túnel seguro HTTPS con **Ngrok** apuntando al puerto `1880` (requisito de Telegram Web Apps)
-  - [x] Sistema de códigos QR y asignación de mesas mediante Deep Links de Telegram (`/start MESA`) propagados como parámetro URL (`?mesa=X`)
-  - [x] Endpoint backend (`POST /recibir_pedido`) para procesar el payload JSON de la comanda y enviar confirmación al cliente por Telegram
-  - [x] Persistir pedidos en base de datos **SQLite** (`bar.db`, tabla `pedidos`) con estado `pendiente`
+  - [x] Sistema de códigos QR y asignación de mesas mediante Deep Links de Telegram (`/start MESA`) propagados automáticamente como parámetro URL (`?mesa=X`)
+  - [x] Webhook backend (`POST /nuevo-pedido`) con bifurcación de flujo: respuesta instantánea `200 OK` para cerrar la app de Telegram limpiamente + guardado asíncrono en SQLite
+  - [x] Persistir pedidos en base de datos **SQLite** (`bar.db`, tabla `pedidos`) resolviendo el bug de parámetros preparados mediante Template Literals
   - [ ] Robustecer control de duplicados e idempotencia
 
-- [ ] **Dashboard de monitorización / Cocina**
-  - [ ] Crear interfaz gráfica en Node-RED Dashboard para que empleados de cocina/barra visualicen pedidos de `bar.db`
-  - [ ] Implementar botón de "Pedido Listo" para marcar comandas y disparar el robot
+- [x] **Dashboard de monitorización / Cocina (Node-RED Dashboard)**
+  - [x] Crear interfaz gráfica en Node-RED Dashboard para que el personal de cocina/barra visualice pedidos de `bar.db`
+  - [x] Implementar arquitectura **Event-Driven**: eliminación del refresco periódico por polling (2 s) y actualización instantánea de la UI disparada por eventos de base de datos
+  - [x] Pipeline de estados dinámicos cíclico (**Procesando ➔ Entregando ➔ Listo**) con botones visuales contextuales por fila
+  - [x] Soporte en SQL (`CASE WHEN`) para avanzar estados tanto de pedidos individuales como de selecciones múltiples en lote
+  - [ ] Conectar el estado final / botón de despacho con la lógica de navegación (Nav2 / rosbridge)
 
 - [ ] **Conectar Node-RED con ROS 2**
-  - [ ] Conectar el botón de "Pedido Listo" del Dashboard con la lógica de navegación (Nav2 / rosbridge)
+  - [ ] Conectar el despacho del Dashboard con la lógica de navegación (Nav2 / rosbridge) para enviar al robot a la mesa
   - [ ] Ejecutar `rosbridge_suite` en el grafo ROS 2 Humble del robot y comprobar disponibilidad de sus operaciones de acción
   - [ ] Configurar WebSocket `ws://<IP-ROSbot>:9090`, alcance de red y controles de acceso
   - [ ] Probar desde Node-RED lectura de estado ROS y goal de navegación supervisado
@@ -53,6 +57,30 @@
   - [ ] Probar primero con carga inerte y luego con el servicio real
 
 ## 📝 Notas
+
+### Registro de Progreso: Sistema de Pedidos "Robot Bar" (2026-10-29)
+
+#### 1. Hitos Completados
+* **Conexión End-to-End Lograda:** La Mini App de Telegram se comunica exitosamente con Node-RED mediante webhook (`POST /nuevo-pedido`), guardando los datos en SQLite y cerrando la app de forma nativa sin errores de "chat_id is empty".
+* **Carrito Visual en la App:** Se implementó una interfaz en la Mini App que permite al cliente revisar el resumen de su pedido (cantidades y platos) antes de confirmar el envío a cocina.
+* **Sistema "Event-Driven" (Refresco Instantáneo):** Se eliminó el "latido" temporal de 2 segundos. Ahora, la tabla del Dashboard se actualiza instantáneamente por eventos: cada vez que entra un pedido nuevo o se pulsa un botón, la base de datos dispara una señal que recarga la pantalla.
+* **Pipeline de Estados Dinámicos:** Se implementó un flujo de trabajo cíclico (**Procesando ➔ Entregando ➔ Listo**). La interfaz adapta los botones visualmente según el estado de cada fila, y una lógica SQL avanzada (`CASE WHEN`) permite avanzar de nivel tanto a pedidos individuales como a selecciones múltiples simultáneas.
+* **Integración de QR y Deep Linking:** Se configuró el bot para interceptar escaneos de códigos QR físicos (`/start [número_mesa]`). El sistema extrae automáticamente el número de mesa y lo inyecta en la URL de la Mini App sin intervención manual.
+
+#### 2. Resoluciones Técnicas Clave
+* **Bug del Nodo SQLite (Valores NULL):** Se descubrió que la versión actual del nodo SQLite fallaba al usar parámetros preparados (`?` o `$variable`). Se solucionó inyectando los valores directamente en la cadena SQL mediante *Template Literals* (`'${mesa}'`), asegurando la inserción correcta de los textos.
+* **Prevención de Cuelgues en Telegram:** Se estructuró el circuito de recepción HTTP bifurcando la señal: una rama responde un `200 OK` (`http response`) instantáneo al móvil para cerrar la app, mientras la otra guarda los datos en la base de datos en segundo plano.
+* **Protección del Bot:** Se añadió un "escudo" en el nodo inicial del bot (`if (!chatId) return null;`) para evitar colapsos si el sistema recibe peticiones HTTP o de sistema sin identificador de chat.
+
+#### 3. Resumen de Rutas y Endpoints Activos
+| Ruta / Evento | Método / Tipo | Función Principal |
+| :--- | :--- | :--- |
+| `/start [mesa]` | Telegram Bot | Asigna mesa vía QR y envía teclado con botón web. |
+| `/carta_app` | HTTP GET | Sirve el HTML/JS de la Mini App al cliente. |
+| `/nuevo-pedido` | HTTP POST | Recibe la comanda, guarda en SQLite y responde OK. |
+| `avanzar_estado` | Websocket (UI) | Actualiza el estado de 1 o múltiples pedidos en SQLite. |
+
+---
 
 ### Registro de Avances: Sistema de Recepción - Robot Camarero (2026-10-22)
 

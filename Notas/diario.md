@@ -4,6 +4,30 @@ Registro diario del progreso del proyecto **Robot Gato Sushi** 🐱🍣 — ROSb
 
 ---
 
+## 2026-10-29
+
+### ✅ Tareas realizadas
+- **Conexión End-to-End de comanda y Mini App (Manu):**
+  - Conexión completa y operativa entre la Telegram Mini App y Node-RED mediante el endpoint webhook `POST /nuevo-pedido`.
+  - Cierre nativo de la aplicación en el cliente móvil tras el envío sin errores de "chat_id is empty".
+  - Implementación de vista de carrito interactivo en la Mini App para comprobar el resumen de platos y cantidades antes de confirmar a cocina.
+  - Asignación de mesa automática e infalible desde códigos QR físicos (`/start [número_mesa]`) inyectada en la URL de la Web App.
+- **Dashboard de Cocina Event-Driven y Pipeline de Estados (Manu):**
+  - Migración a arquitectura *Event-Driven* eliminando el sondeo periódico de 2 segundos: la UI se refresca instantáneamente tras inserciones en SQLite o acciones de botones.
+  - Flujo de estados dinámico implementado: **Procesando ➔ Entregando ➔ Listo**.
+  - Botones dinámicos contextuales según estado en la tabla del Dashboard y avance de estados individual o masivo en lote mediante SQL (`CASE WHEN`).
+- **Robustecimiento y estabilidad del backend (Manu):**
+  - Solucionado bug del nodo SQLite que insertaba valores NULL al usar parámetros preparados (`?`), resolviéndolo mediante Template Literals (`'${mesa}'`).
+  - Bifurcación en la recepción HTTP: emisión inmediata de `200 OK` para liberar la UI de Telegram y persistencia en segundo plano.
+  - Blindaje del bot de Telegram (`if (!chatId) return null;`) frente a eventos huérfanos o peticiones sin ID de chat.
+
+### 📝 Observaciones
+- La suite de recepción, visualización y gestión de comandas en barra/cocina está completamente funcional.
+- Resumen de endpoints operativos: `/start [mesa]` (Bot Telegram), `/carta_app` (GET Front-end), `/nuevo-pedido` (POST recepción de comanda) y `avanzar_estado` (Websocket Dashboard).
+- Próximo paso: enlazar el cambio a estado de entrega / despacho con la invocación de navegación hacia Nav2 vía rosbridge.
+
+---
+
 ## 2026-10-22
 
 ### ✅ Tareas realizadas
