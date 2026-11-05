@@ -1,0 +1,15 @@
+---
+# Modificado por Irene González respecto a la configuración de Husarion:
+#  1. Se quita la cámara Orbbec Astra (CAM01). Sin GPU, la cámara RGB-D renderizada por software
+#     bajaba la simulación a un factor de tiempo real de 0.14 (ERR-004). Nadie del equipo la usa.
+#  2. LiDAR: LDR02 (RPLidar S2) -> LDR03 (RPLidar A2M12), el del ROSbot real del equipo
+#     (Adri: "RPLIDAR A2, rango 0,15-25 m"; LIDAR_BAUDRATE=256000 en rosbot/.env).
+#     Además, su rango mínimo de 0.2 m evita que, con el motor de render "ogre", el láser
+#     se detecte a sí mismo a 5 cm (ERR-010). 1600 haces en vez de 3000: más ligero.
+# El resto de archivos de robot_config/ son copia sin cambios de la configuración de Husarion
+# (generada con: ros2 run rosbot_utils create_config_dir <dir>).
+components:
+  - type: LDR03
+    parent_link: cover_link
+    xyz: 0.02 0.0 0.0
+    rpy: 0.0 0.0 0.0

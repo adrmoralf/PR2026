@@ -1,0 +1,103 @@
+# Autora: Irene González
+# RViz2 para la simulación del restaurante (namespace /rosbot2r).
+# Frame fijo "odom": el robot se ve moverse. Cuando haya mapa (SLAM/Nav2), cambiar a "map".
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+  - Class: rviz_common/Views
+    Name: Views
+  - Class: rviz_common/Time
+    Name: Time
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Cell Size: 1
+      Plane Cell Count: 14
+      Color: 160; 160; 164
+      Reference Frame: <Fixed Frame>
+    - Class: rviz_default_plugins/RobotModel
+      Name: RobotModel
+      Enabled: true
+      Description Source: Topic
+      Description Topic:
+        Value: /rosbot2r/robot_description
+        Durability Policy: Transient Local
+        Reliability Policy: Reliable
+        Depth: 5
+    - Class: rviz_default_plugins/TF
+      Name: TF
+      Enabled: false
+    - Class: rviz_default_plugins/LaserScan
+      Name: LiDAR
+      Enabled: true
+      Topic:
+        Value: /rosbot2r/scan
+        Reliability Policy: Best Effort
+        Durability Policy: Volatile
+        Depth: 5
+      Size (m): 0.04
+      Style: Flat Squares
+      Color Transformer: FlatColor
+      Color: 255; 40; 40
+      Decay Time: 0
+    - Class: rviz_default_plugins/Odometry
+      Name: Odometria
+      Enabled: true
+      Topic:
+        Value: /rosbot2r/odometry/filtered
+        Reliability Policy: Reliable
+        Durability Policy: Volatile
+        Depth: 5
+      Keep: 30
+      Position Tolerance: 0.1
+      Angle Tolerance: 0.3
+      Shape:
+        Value: Arrow
+        Color: 50; 160; 255
+        Shaft Length: 0.3
+        Shaft Radius: 0.02
+        Head Length: 0.08
+        Head Radius: 0.05
+    - Class: rviz_default_plugins/Map
+      Name: Mapa
+      Enabled: true
+      Topic:
+        Value: /rosbot2r/map
+        Reliability Policy: Reliable
+        Durability Policy: Transient Local
+        Depth: 5
+  Enabled: true
+  Global Options:
+    Background Color: 48; 48; 48
+    Fixed Frame: odom
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz_default_plugins/Interact
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Measure
+    - Class: rviz_default_plugins/SetInitialPose
+      Topic:
+        Value: /rosbot2r/initialpose
+    - Class: rviz_default_plugins/SetGoal
+      Topic:
+        Value: /rosbot2r/goal_pose
+    - Class: rviz_default_plugins/PublishPoint
+      Topic:
+        Value: /rosbot2r/clicked_point
+  Value: true
+  Views:
+    Current:
+      Class: rviz_default_plugins/TopDownOrtho
+      Name: Vista cenital
+      X: 2.5
+      Y: 0
+      Scale: 70
+      Angle: 0
+      Target Frame: <Fixed Frame>
+Window Geometry:
+  Width: 1200
+  Height: 800

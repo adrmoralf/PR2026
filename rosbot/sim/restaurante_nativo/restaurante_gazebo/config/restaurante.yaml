@@ -1,0 +1,64 @@
+# Autora: Irene González
+# Descripción del restaurante simulado: es la ÚNICA fuente de verdad.
+#   - scripts/generar_mundo.py crea un mundo worlds/<escenario>.sdf por cada escenario de escenarios.yaml.
+#   - El bloque "waypoints" es el catálogo mesa -> pose {x, y, yaw} que usarán Node-RED y Nav2.
+#
+# Sistema de coordenadas (frame "world" de Gazebo):
+#   - El origen (0, 0) es la salida del robot en la cocina, mirando hacia +x (yaw = 0).
+#   - Si SLAM arranca con el robot en esa posición, el frame "map" coincide con "world".
+#   - Unidades: metros y radianes.
+
+simulacion:
+  # Paso de la física. Husarion usa 0.001 s, pero es demasiado pesado para este equipo (ERR-004).
+  # 0.004 s = 250 Hz, suficiente para el controlador de ruedas (100 Hz).
+  paso_fisica: 0.004
+  # Motor de render de los sensores (el LiDAR es un gpu_lidar: mide distancias renderizando).
+  # En VirtualBox solo mide bien con OpenGL por software (argumento del launch software_gl:=True,
+  # activado por defecto). Ver ERR-010.
+  motor_render: ogre2
+
+sala:
+  x_min: -1.5        # pared trasera de la cocina
+  x_max: 6.5         # pared del fondo (con la puerta)
+  y_min: -3.0
+  y_max: 3.0
+  alto_pared: 2.5
+  grosor_pared: 0.15
+
+cocina:
+  # Barra/pasaplatos que separa la cocina del comedor, con un hueco central para el robot.
+  x_barra: 0.6
+  hueco_y_min: -0.7
+  hueco_y_max: 0.7
+  alto_barra: 1.0
+  grosor_barra: 0.3
+
+puerta:
+  # Solo visual: la pared sigue cerrada para que SLAM vea un recinto cerrado.
+  # Está alineada con el pasillo central, porque es por donde entran las "personas".
+  y_centro: 0.0
+  ancho: 1.0
+
+# forma: cuadrada (lado = tamano) o redonda (diámetro = tamano)
+# Distribución 2 x 2. Pasillo central (entre filas) de 1.4 m y pasillo intermedio (entre columnas) de 0.8 m.
+mesas:
+  - {id: 1, x: 2.3, y:  1.6, forma: cuadrada, tamano: 0.8}
+  - {id: 2, x: 4.9, y:  1.6, forma: redonda,  tamano: 0.9}
+  - {id: 3, x: 2.3, y: -1.6, forma: redonda,  tamano: 0.9}
+  - {id: 4, x: 4.9, y: -1.6, forma: cuadrada, tamano: 0.8}
+
+sillas:
+  por_mesa: 4             # 4 = una por lado (+x, -x, +y, -y); 2 = solo en los lados x
+  distancia_a_mesa: 0.7   # del centro de la mesa al centro de la silla
+  lado: 0.4
+  alto_asiento: 0.45
+
+# Catálogo de destinos para la navegación (frame map == world si se cumple lo anterior).
+# El robot espera en el pasillo central, delante de la silla que da al pasillo, mirando a la mesa.
+# Distancia a la silla: 0.3 m (robot_radius de Nav2 = 0.16 m).
+waypoints:
+  cocina: {x: 0.0, y:  0.0,  yaw:  0.0}
+  mesa_1: {x: 2.3, y:  0.4,  yaw:  1.5708}
+  mesa_2: {x: 4.9, y:  0.4,  yaw:  1.5708}
+  mesa_3: {x: 2.3, y: -0.4,  yaw: -1.5708}
+  mesa_4: {x: 4.9, y: -0.4,  yaw: -1.5708}

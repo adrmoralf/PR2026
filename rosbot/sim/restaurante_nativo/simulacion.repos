@@ -1,0 +1,8 @@
+# Autora: Irene González
+# Código de Husarion necesario para simular el ROSbot 2 PRO en Gazebo Fortress (ROS 2 Humble).
+# Uso: vcs import src < simulacion.repos  (y después vcs import src < src/rosbot_ros/rosbot/rosbot_simulation.repos)
+repositories:
+  rosbot_ros:
+    type: git
+    url: https://github.com/husarion/rosbot_ros.git
+    version: fe7ad11b665a8b6412aeed7475247114b3d09b7b  # rama humble, 0.15.x
