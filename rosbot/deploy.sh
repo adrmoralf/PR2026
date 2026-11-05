@@ -18,7 +18,8 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODE="${1:-deploy}"
 
 RSYNC_OPTS=(-rlpz --checksum --delete --itemize-changes
-  --exclude='.git/' --exclude='maps/' --exclude='.vscode/' --exclude='deploy.sh')
+  --exclude='.git/' --exclude='maps/' --exclude='.vscode/' --exclude='deploy.sh'
+  --exclude='sim/' --exclude='__pycache__/' --exclude='test/')
 
 case "$MODE" in
   --pull-map)
@@ -52,6 +53,8 @@ echo "$CHANGES"
 RESTART=()
 grep -qE ' config/nav2_' <<<"$CHANGES" && RESTART+=(navigation)
 grep -qE ' filter\.yaml' <<<"$CHANGES" && RESTART+=(ros2router)
+# El código del camarero se monta como volumen: reiniciar si está activo.
+grep -qE ' camarero/' <<<"$CHANGES" && RESTART+=(camarero)
 
 ssh "$ROBOT" bash -s -- "$REMOTE_DIR" "${RESTART[@]}" <<'EOF'
 set -euo pipefail
@@ -59,9 +62,13 @@ cd "$HOME/$1"; shift
 docker compose config --quiet
 # Recrea los servicios cuyo compose.yaml o .env haya cambiado.
 docker compose up -d --remove-orphans
-if [[ $# -gt 0 ]]; then
-  echo ">> Reiniciando: $*"
-  docker compose restart "$@"
+# Reinicia solo los servicios pedidos que estén en marcha (camarero puede estar desactivado).
+ACTIVOS=" $(docker compose ps --services --status running | tr '\n' ' ') "
+PEDIDOS=()
+for s in "$@"; do [[ "$ACTIVOS" == *" $s "* ]] && PEDIDOS+=("$s"); done
+if [[ ${#PEDIDOS[@]} -gt 0 ]]; then
+  echo ">> Reiniciando: ${PEDIDOS[*]}"
+  docker compose restart "${PEDIDOS[@]}"
 fi
 docker compose ps
 EOF

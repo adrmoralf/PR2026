@@ -1,0 +1,12 @@
+# Puntos del restaurante simulado (sim/worlds/restaurante.sdf).
+# Coordenadas en el frame 'map'. Con SLAM, el mapa nace donde arranca el robot,
+# y en simulación el robot aparece en la cocina (0, 0) mirando hacia +x.
+# yaw en radianes: 0 = +x, 1.5708 = +y, -1.5708 = -y, 3.1416 = -x.
+frame_id: map
+base: cocina
+puntos:
+  cocina: {x: 0.0,  y: 0.0,   yaw: 0.0}
+  mesa_1: {x: 3.5,  y: 1.25,  yaw: 1.5708}    # mesa en (3.5, 2.0), el robot se para delante
+  mesa_2: {x: 3.5,  y: -1.25, yaw: -1.5708}   # mesa en (3.5, -2.0)
+  mesa_3: {x: 6.5,  y: 1.25,  yaw: 1.5708}    # mesa en (6.5, 2.0)
+  mesa_4: {x: 6.5,  y: -1.25, yaw: -1.5708}   # mesa en (6.5, -2.0)

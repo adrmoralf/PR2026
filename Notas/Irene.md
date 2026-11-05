@@ -40,4 +40,6 @@
 
 ## 📝 Notas
 
+- 2026-11-05 (Adri): hay un entorno de simulación base en [`rosbot/sim/`](../rosbot/sim/README.md): Gazebo Fortress con el ROSbot (`husarion/rosbot-gazebo:humble-0.13.0`), un restaurante sencillo (cocina + 4 mesas, generado con `worlds/generar_restaurante.py`), Nav2/SLAM con los mismos parámetros que el robot real, RViz2 y el nodo `camarero`. Se lanza con `./sim.sh`. Preparado para GPU Intel (sin NVIDIA). **Aún no se ha ejecutado** (faltan ~2,2 GB de imágenes); sirve como punto de partida para las subtareas de mundo, SLAM, Nav2 y waypoints.
+
 _(Apunta aquí lo que vayas descubriendo, problemas, soluciones, etc.)_

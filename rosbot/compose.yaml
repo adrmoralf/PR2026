@@ -80,3 +80,24 @@ services:
         params_file:=/params.yaml
         map:=/maps/map.yaml
         use_sim_time:=False
+
+  # Lógica del camarero (código en ./camarero). Desactivado por defecto:
+  # activar con COMPOSE_PROFILES=camarero en .env cuando mesas_robot.yaml tenga las mesas reales.
+  camarero:
+    image: husarion/navigation2:humble-1.1.12-20240123
+    profiles: [camarero]
+    <<:
+      - *common-config
+      - *dds-envs
+    depends_on:
+      navigation: { condition: service_healthy }
+    volumes:
+      - ./camarero:/camarero:ro
+    environment:
+      - ROBOT_NAMESPACE
+      - PYTHONPATH=/camarero
+      - PYTHONDONTWRITEBYTECODE=1
+    command: >
+      python3 -m camarero.camarero_node --ros-args
+        -r __ns:=/${ROBOT_NAMESPACE}
+        -p mesas_file:=/camarero/config/mesas_robot.yaml

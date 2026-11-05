@@ -1,0 +1,82 @@
+# Simulación del robot camarero: Gazebo (Ignition Fortress) + Nav2/SLAM + RViz2 + nodo camarero.
+# Uso: ./sim.sh   (ver README.md)
+name: camarero-sim
+
+x-sim-config: &sim-config
+  # Red propia de Compose (no 'host'): la simulación queda aislada del ROSbot real.
+  ipc: host
+  environment: &sim-env
+    ROBOT_NAMESPACE: ${ROBOT_NAMESPACE:-rosbot2r}
+    ROS_DOMAIN_ID: ${ROS_DOMAIN_ID:-42}
+    DISPLAY: ${DISPLAY:?Hace falta una sesión gráfica (DISPLAY)}
+    LIBGL_ALWAYS_SOFTWARE: ${LIBGL_ALWAYS_SOFTWARE:-0}
+    QT_X11_NO_MITSHM: "1"
+  devices:
+    - /dev/dri:/dev/dri   # GPU Intel integrada (sin NVIDIA)
+  volumes:
+    - /tmp/.X11-unix:/tmp/.X11-unix:rw
+
+services:
+
+  gazebo:
+    image: husarion/rosbot-gazebo:humble-0.13.0-20240115
+    <<: *sim-config
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./worlds:/worlds:ro
+    command: >
+      ros2 launch rosbot_gazebo simulation.launch.py
+        world:=/worlds/restaurante.sdf
+        mecanum:=False
+        namespace:=${ROBOT_NAMESPACE:-rosbot2r}
+        x:=0.0 y:=0.0 yaw:=0.0
+
+  navigation:
+    image: husarion/navigation2:humble-1.1.12-20240123
+    <<: *sim-config
+    depends_on:
+      gazebo: { condition: service_healthy }
+    environment:
+      <<: *sim-env
+      SAVE_MAP_PERIOD: ${SAVE_MAP_PERIOD:-15}
+    volumes:
+      - ../config/nav2_${CONTROLLER:-dwb}_params.yaml:/params.yaml:ro
+      - ./maps:/maps
+    command: >
+      ros2 launch /husarion_utils/bringup_launch.py
+        slam:=${SLAM:-True}
+        params_file:=/params.yaml
+        map:=/maps/map.yaml
+        use_sim_time:=True
+
+  rviz:
+    image: husarion/rviz2:humble-11.2.6-20230809
+    <<: *sim-config
+    depends_on:
+      navigation: { condition: service_healthy }
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ../config/rosbot.rviz:/default.rviz:ro
+    command: >
+      rviz2 -d /default.rviz --ros-args
+        -r /tf:=tf
+        -r /tf_static:=tf_static
+        -r __ns:=/${ROBOT_NAMESPACE:-rosbot2r}
+        -p use_sim_time:=true
+
+  camarero:
+    image: husarion/navigation2:humble-1.1.12-20240123
+    <<: *sim-config
+    depends_on:
+      navigation: { condition: service_healthy }
+    volumes:
+      - ../camarero:/camarero:ro
+    environment:
+      <<: *sim-env
+      PYTHONPATH: /camarero
+      PYTHONDONTWRITEBYTECODE: "1"
+    command: >
+      python3 -m camarero.camarero_node --ros-args
+        -r __ns:=/${ROBOT_NAMESPACE:-rosbot2r}
+        -p mesas_file:=/camarero/config/mesas_sim.yaml
+        -p use_sim_time:=true

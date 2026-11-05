@@ -1,0 +1,9 @@
+# Puntos del restaurante REAL. Rellenar tras hacer el mapa del local:
+# en RViz, usar "Publish Point" o leer /rosbot2r/amcl_pose / la pose del robot
+# colocado delante de cada mesa, y copiar x, y, yaw aquí.
+# Mientras una mesa no esté definida, los pedidos a ella se rechazan.
+frame_id: map
+base: cocina
+puntos:
+  cocina: {x: 0.0, y: 0.0, yaw: 0.0}
+  # mesa_1: {x: 0.0, y: 0.0, yaw: 0.0}

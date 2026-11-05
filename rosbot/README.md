@@ -16,10 +16,32 @@ El README original está en [`README.husarion.md`](README.husarion.md).
 | `config/nav2_rpp_params.yaml` | Lo mismo para el controlador Regulated Pure Pursuit | `navigation` |
 | `compose.yaml` | Contenedores del robot: `rosbot` (base + EKF), `rplidar`, `navigation` (Nav2 + SLAM Toolbox), `ros2router` | los servicios cambiados |
 | `filter.yaml` | Tópicos/acciones que `ros2router` deja salir del robot | `ros2router` |
+| `camarero/` | **Código propio**: nodo que recibe pedidos por mesa y manda el robot con Nav2 | `camarero` (si está activo) |
+| `camarero/config/mesas_robot.yaml` | Coordenadas de cocina y mesas en el mapa real | `camarero` |
 | `compose.pc.yaml` | RViz2 en el PC | — (se ejecuta en el PC) |
-| `compose.sim.*.yaml` | Simulación Gazebo/Webots | — |
+| `sim/` | **Simulación del restaurante** para este proyecto ([`sim/README.md`](sim/README.md)) | — (no se copia al robot) |
+| `compose.sim.*.yaml` | Simulaciones originales de Husarion (requieren NVIDIA) | — |
 
 Los ficheros `*_webots_params.yaml` y `nav2_mppi_params.yaml` solo sirven para simulación o como referencia.
+
+## Nodo camarero
+
+Interfaz (todo bajo `/rosbot2r/`, tipos `std_msgs`):
+
+| Tópico | Tipo | Uso |
+|---|---|---|
+| `camarero/pedido` | `String` | `"mesa_3"`, `"3"` o `"cocina"`. Se encola si el robot está ocupado |
+| `camarero/entregado` | `Empty` | El cliente recogió el plato → vuelve a cocina |
+| `camarero/cancelar` | `Empty` | Cancela la navegación y vacía la cola |
+| `camarero/estado` | `String` (JSON, último valor retenido) | `{"estado", "destino", "cola", "detalle"}` |
+
+Estados: `EN_BASE → YENDO_A_MESA → EN_MESA → VOLVIENDO → (ESPERANDO_SALIDA →) …`, más `PARADO` y `ERROR`.
+Si nadie confirma en `espera_en_mesa_s` (60 s) vuelve solo a cocina.
+
+En el robot está **desactivado**. Para activarlo, cuando `mesas_robot.yaml` tenga las mesas reales,
+añadir `COMPOSE_PROFILES=camarero` a `.env` y ejecutar `./deploy.sh`.
+
+Tests sin ROS: `cd camarero && PYTHONPATH=. python3 -s -m pytest test`.
 
 ## Desplegar en el robot
 
