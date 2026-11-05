@@ -64,7 +64,7 @@
 - Prueba inicial de teleoperación: el robot respondió y se movió brevemente con `i`; en esa prueba se indicó pulsar la tecla solo un instante y después parar con `k`.
 - Ping laptop → ROSbot (`172.20.10.8`): 20/20 respuestas, 0 % de pérdida; RTT mínimo 12 ms, medio 112,7 ms, máximo 331,1 ms, desviación 95,0 ms. Hay jitter alto pese a que no se perdieron paquetes.
 - Proyecto de robot camarero: Node-RED recibe pedidos Telegram, valida la mesa y solicita a Nav2 navegar a la pose guardada de esa mesa. Mantener `/cmd_vel` para teleoperación y confirmar entrega separadamente de la llegada.
-- Referencia de despliegue de navegación: submódulo oficial [`rosbot-autonomy`](../rosbot-autonomy) en rama `ros2router`; requiere revisar configuración antes de levantarlo en esta unidad.
+- Stack de navegación del robot: carpeta [`rosbot/`](../rosbot/README.md) de este repo (antes submódulo `rosbot-autonomy` de Husarion, commit `b4208db`). Se edita aquí y se envía al robot con `rosbot/deploy.sh`.
 - En el PC se verificó Ubuntu 26.04 LTS, Docker 29.8.2, Compose v5.6.0 y `colcon`; no están instalados los comandos nativos `ros2` ni `just`. ROS 2 Lyrical tiene binarios para Ubuntu 26.04, pero no es la distribución que usa el robot; priorizar contenedores del proyecto para mantener compatibilidad con Humble.
 - La copia local y la copia en `/home/husarion/rosbot-autonomy` están ajustadas a `CONTROLLER=dwb` y `SERIAL_PORT=/dev/ttySERIAL`, tras confirmar CPU y UART. El robot tiene el commit `b4208db70cf88a064ea886256f03e40959c57181`; `docker compose config --quiet` pasó en ambos equipos.
 - Comprobación en el ROSbot (2026-10-29): CPU confirmada `Intel Atom x5-Z8350`; seleccionar DWB o RPP en el despliegue oficial, no MPPI.

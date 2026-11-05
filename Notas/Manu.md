@@ -130,7 +130,7 @@ Se ha convertido Node-RED en un servidor web mediante los nodos `http in` y `htt
 - El uso final es robot camarero: los clientes piden comida a una mesa mediante bot Telegram; Node-RED valida/orquesta y manda una pose de mesa a Nav2. El robot comunica llegada y la entrega requiere confirmación explícita.
 - Node-RED se plantea en un contenedor aparte en laptop/PC, con `/data` persistente. No instalar ROS en ese contenedor para esta integración.
 - Conectar con WebSocket rosbridge ejecutado en el grafo ROS 2 Humble del robot. Antes de diseñar el flujo final, verificar soporte de acciones en la versión concreta de rosbridge; el protocolo ROS 2 documenta goals, feedback, resultados y cancelación.
-- Para desplegar cambios del stack oficial en el robot, la documentación del submódulo recomienda `just sync <host>` (rsync y vigilancia de archivos); no hace falta hacer `git pull` del robot en cada edición. Revisar el `.env` y requisitos del equipo antes de ejecutar `just start-rosbot`.
+- Para desplegar cambios del stack oficial en el robot, usar `rosbot/deploy.sh` (ver `rosbot/README.md`) en lugar del `just sync <host>` original (que usa contraseña con sshpass); no hace falta hacer `git pull` del robot en cada edición. Revisar el `.env` y requisitos del equipo antes de ejecutar `just start-rosbot`.
 - El nodo de Telegram debe usar Telegram Bot API; el paquete llamado `node-red-node-telegrambot` puede ser un userbot basado en cuenta personal y no es equivalente.
 
 Referencias:
