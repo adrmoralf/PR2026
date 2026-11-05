@@ -6,6 +6,8 @@ Aquí se documentan los errores cometidos durante el desarrollo del proyecto, ta
 
 | Fecha | Quién | Descripción del error | Solución aplicada |
 |-------|-------|----------------------|-------------------|
+| 2026-11-05 | Adri | `map_saver` no podía escribir `/maps/map.png`: Docker creó `rosbot-autonomy/maps` como root y los nodos corren como `husarion`. | `chown 1000:1000` de `maps/`; crear la carpeta antes del primer `docker compose up`. |
+| 2026-11-05 | Adri | La CLI `ros2` dentro de los contenedores no veía nodos (transporte solo SHM; `docker exec` como root y salto de reloj 2024→2026 tras el arranque). | Usar `docker exec --user husarion`; reiniciar el stack con la hora ya sincronizada y limpiar `/dev/shm/fastrtps_*`. |
 | 2026-10-29 | Manu | El nodo SQLite insertaba valores NULL en la base de datos al usar parámetros preparados (`?` o `$variable`). | Construir la sentencia SQL inyectando valores directamente con *Template Literals* (`'${mesa}'`), garantizando la inserción correcta de las cadenas. |
 | 2026-10-29 | Manu | La Mini App de Telegram se quedaba colgada/esperando respuesta tras pulsar "Enviar a cocina", impidiendo el cierre nativo de la app. | Bifurcar el flujo tras recibir el POST: emitir inmediatamente un `200 OK` (`http response`) al móvil y procesar el guardado en SQLite en segundo plano. |
 | 2026-10-29 | Manu | Error "chat_id is empty" y colapso del bot al recibir eventos internos o peticiones HTTP ajenas al contexto de un chat de Telegram. | Añadir filtro protector en el nodo de entrada del bot: `if (!chatId) return null;`. |

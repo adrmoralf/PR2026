@@ -4,6 +4,24 @@ Registro diario del progreso del proyecto **Robot Gato Sushi** 🐱🍣 — ROSb
 
 ---
 
+## 2026-11-05
+
+### ✅ Tareas realizadas
+- Acceso SSH al ROSbot por clave (`ssh-copy-id husarion@172.20.10.8`); ping laptop → robot 0 % de pérdida, RTT 11–70 ms con la antena montada.
+- El robot se había reiniciado y el stack oficial (`rosbot`, `rplidar`, `navigation`, `ros2router`) arrancó solo por `restart: unless-stopped`.
+- **Mapa no se guardaba:** `map_saver` fallaba cada 15 s con `Unable to open file (/maps/map.png)`. Docker había creado `rosbot-autonomy/maps` como `root` (755) y los nodos corren como `husarion` (UID 1000). Corregido con `chown 1000:1000` sobre `maps/` (vía contenedor, `sudo` pide contraseña). Ahora se escriben `map.png` y `map.yaml`.
+- **Descubrimiento DDS inconsistente:** la CLI `ros2` en los contenedores solo veía `/parameter_events` y `/rosout`. Causas: (1) el transporte es solo SHM (`/shm-only.xml`), y `docker exec` como root falla al abrir los puertos SHM (`open_and_lock_file failed`); (2) el robot arrancó con el reloj en 2024 y NTP lo saltó a 2026 con los nodos ya en marcha. Tras `docker compose down`, limpiar `/dev/shm/fastrtps_*` y `up -d` con la hora correcta, la CLI ve 19 nodos, todos los tópicos y las 12 acciones de Nav2 (incluida `/rosbot2r/navigate_to_pose`).
+- Comprobados sensores sin mover el robot: `/rosbot2r/scan` 10,4 Hz (rango 0,15–25 m); `/rosbot2r/odometry/filtered` ~20 Hz; `/rosbot2r/imu_broadcaster/imu` publica (~20 Hz medido desde la CLI con el sistema cargado).
+- No se envió ninguna velocidad ni goal.
+
+### ⚠️ Observaciones
+- **CPU saturada:** load average ~14 en 4 núcleos (Atom x5-Z8350). `navigation` (Nav2 + SLAM Toolbox) consume ~280 % CPU; `ekf_node` avisa de `Failed to meet update rate`. Vigilar antes de navegar; valorar reducir frecuencias/costmaps o separar SLAM de navegación.
+- **Cámara Orbbec Astra:** descartada para el proyecto; se ha desconectado del robot.
+- Para usar la CLI ROS 2: `docker exec --user husarion <contenedor> bash -lc 'source /opt/ros/humble/setup.bash; export ROS_HOME=/tmp/rh; ros2 ...'`. No usar root.
+- Quedan en `/dev/shm` ficheros FastDDS de root de las primeras consultas; se limpiarán en el próximo reinicio.
+
+---
+
 ## 2026-10-29
 
 ### ✅ Tareas realizadas

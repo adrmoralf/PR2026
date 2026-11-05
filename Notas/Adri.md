@@ -30,15 +30,15 @@
   - [ ] Verificar comunicación con `ros2 topic list` desde el PC
 
 - [ ] **Probar sensores del robot**
-  - [ ] Comprobar datos del LiDAR (RPLIDAR A2) — `ros2 topic echo /scan`
-  - [ ] Comprobar la cámara RGB-D (Orbbec Astra)
-  - [ ] Comprobar la IMU (BNO055)
-  - [ ] Comprobar los encoders de las ruedas (odometría)
+  - [x] Comprobar datos del LiDAR (RPLIDAR A2) — `/rosbot2r/scan` a 10,4 Hz, rango 0,15–25 m
+  - [x] ~~Comprobar la cámara RGB-D (Orbbec Astra)~~ — descartada: no se usará en el proyecto y se ha desconectado (2026-11-05)
+  - [x] Comprobar la IMU (BNO055) — `/rosbot2r/imu_broadcaster/imu` publica
+  - [x] Comprobar los encoders de las ruedas (odometría) — `/rosbot2r/odometry/filtered` ~20 Hz
 
 - [ ] **Instalar dependencias de navegación**
-  - [ ] Instalar Nav2 para la distribución ROS 2 elegida
-  - [ ] Instalar SLAM Toolbox para la distribución ROS 2 elegida
-  - [ ] Verificar que los paquetes del ROSbot 2 PRO están disponibles
+  - [x] Instalar Nav2 para la distribución ROS 2 elegida — imagen `husarion/navigation2:humble-1.1.12`
+  - [x] Instalar SLAM Toolbox para la distribución ROS 2 elegida — incluido en la imagen de navegación (`SLAM=True`)
+  - [x] Verificar que los paquetes del ROSbot 2 PRO están disponibles — 19 nodos y 12 acciones Nav2 visibles, incluida `navigate_to_pose`
 
 - [ ] **Test básico de movimiento**
   - [ ] Teleoperar el robot con `ros2 run teleop_twist_keyboard teleop_twist_keyboard`
@@ -76,6 +76,8 @@
 - Tras la primera prueba fallida por ausencia de feedback de IMU, se ejecutó `just flash-firmware` siguiendo la guía oficial. La herramienta reconoció el STM32F4 (Device ID `0x0413`) y confirmó `Firmware flashing completed successfully` con `firmware-0.11.0.bin` (100 % escrito/verificado en `/dev/ttyS4`).
 - Después del flasheo se inició el Compose oficial. Estado verificado: `rosbot` healthy, `rplidar` healthy, `navigation` healthy y `ros2router` activo. Los logs indican que los controladores de ruedas, IMU y joint states quedaron configurados/activados, y Nav2 dejó sus nodos lifecycle activos.
 - Desde la lista de tópicos aparecen `/rosbot2r/scan`, `/rosbot2r/odometry/filtered`, `/rosbot2r/imu_broadcaster/imu`, `/rosbot2r/cmd_vel` y tópicos de SLAM/Nav2. Las consultas puntuales `topic info` y `action list` no quedaron verificadas de forma consistente entre contenedores; revisar descubrimiento DDS antes de conectar Node-RED. No se mandó ninguna velocidad ni objetivo de navegación. Aún falta mapa/pose inicial y prueba física supervisada. Espacio libre: 3,1 GB (89 % usado).
+
+- 2026-11-05: SSH por clave configurado. Arreglados el guardado del mapa (`maps/` era de root) y el descubrimiento DDS de la CLI (usar `docker exec --user husarion`). CPU saturada (load ~14; `navigation` ~280 %). Detalles en `diario.md`.
 
 _(Apunta aquí lo que vayas descubriendo, problemas, soluciones, etc.)_
 
